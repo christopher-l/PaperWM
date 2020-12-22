@@ -499,7 +499,7 @@ function init () {
     signals = new Utils.Signals();
 }
 
-var panelBoxShowId, panelBoxHideId;
+var panelBoxShowId, panelBoxHideId, panelBinding;
 function enable () {
     Main.panel.statusArea.activities.actor.hide();
 
@@ -561,7 +561,17 @@ function enable () {
     signals.connect(menu._label, 'notify::allocation', fixLabel);
     signals.connectOneShot(menu._label, 'notify::allocation', () => {
         setMonitor(Main.layoutManager.primaryMonitor);
-    })
+    });
+
+    Main.panel.reactive = true;
+    if (panelBinding) {
+        panel.actor.disconnect(panelBinding);
+    }
+    panelBinding = Main.panel.actor.connect('scroll-event',_onScroll);
+}
+
+function _onScroll(actor, event) {
+    log('_onScroll');
 }
 
 function disable() {
@@ -577,6 +587,11 @@ function disable() {
     screenSignals = [];
 
     panelBox.scale_y = 1;
+
+    if (panelBinding) {
+        panel.actor.disconnect(panelBinding);
+        panelBinding = null;
+    }
 }
 
 function fixTopBar() {
